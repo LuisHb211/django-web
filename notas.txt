@@ -1,0 +1,19 @@
+python -m ven venv
+pip install django
+pip freeze > requirements.txt
+
+django-admin help
+django-admin startproject setup . # setup ou config; o '.' serve para nao criar uma subpasta desse arquivo
+python manage.py runserver
+
+--->settings.py
+    LANGUAGE_CODE / TIME_ZONE
+
+pip install python-dotenv
+
+--->settings.py
+    from pathlib import Path, os
+    from dotenv import load_dotenv
+
+    load_dotenv()
+    str(os.getenv('SECRET_KEY'))
