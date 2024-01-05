@@ -17,3 +17,98 @@ pip install python-dotenv
 
     load_dotenv()
     str(os.getenv('SECRET_KEY'))
+
+--->cirado arquivo .env e .gitignore
+
+python manage.py startapp galeria
+
+--->setting.py 
+    INSTALLED_APPS = ['galeira']
+
+---> galeria/views.py # responsável por exibir informações na tela.
+    from django.http import HttpResponse
+
+    def Index(request):
+        return HttpResponse('<h1>Alura Space</h1>')
+
+---> urls.py (setup)
+    from galeria.views import Index
+    path('', Index),
+
+---> criando urls.py em galeria 
+    # Para não precisar de usar o urls.py(setup) para listar todas as urls de todos os apps criados, assim é possível dividir as urls por app.
+
+    from django.urls import path
+    from galeria.views import Index
+    urlpatterns = [
+    path('', Index),
+    ]
+
+---> urls.py(setup)
+    from django.urls import path, include
+    urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('galeria.urls')),
+    ]
+
+---> criando pasta templates
+    # Essa pasta sera o lugar para armazenar a parte visual/html da aplicacao
+
+---> settings.py
+    'DIRS': [os.path.join(BASE_DIR, 'templates')],
+---> view.py(galeria)
+        return render(request, 'index.html')
+
+---> Criando pasta galeria dentro de templates
+        alterando view.py(galeria)
+            return render(request, 'galeria/index.html')
+
+---> Criando pasta static em setup, onde ficara os arquivos estaticos/CSS
+---> settings.py
+    STATICFILES_DIRS = [
+    os.path.join(BASE_DIR,'setup/static')
+    ] 
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+python manage.py collectstatic
+
+<% load static %> (index.html)
+<link rel="stylesheet" href="{% static '/styles/style.css' %}">
+
+fazer o mesmo para todas as imagens em index.html
+    href ="{% static '...' %}"
+
+---> Para carregar novas paginas que serao abertas:
+    Criado o arquivo imagem.html
+    Definida a funcao Imagem() em views.py(galeria)
+    Criada path('imagem/', Imagem) em urls.py(galeria)
+
+Ao abrir novas páginas a partir da principal é aberto a url: '/imagem.html', pois no index.html há um href para index.html. Para que abra o Imagem, do views.py, é necessário:
+        path('imagem/', Imagem, name='imagem') (urls.py)
+        definido o name=imagem, deve-se alterar o href do index.html, com esse name:
+            <a href="imagem.html">   --->   <a href="{% url 'imagem' %}">
+
+Para que o botao home funcione, basta fazer o mesmo para abrir as paginas imagens.html:
+    path('', Index, name='index') (urls.py)
+    Como eu quero voltar para o home, a partir da pagina imagem.html, devo alterar no imagem.html:
+        <a href="{% url 'index' %}">
+
+APLICANDO O DRY(DON'T REPEAT YOURSELF):
+    cria-se o arquivo base.html, que irá conter os códigos .html semelhantes em index.html e imagem.html
+    No incio de index e imagem:
+        {% extends "galeria/base.html" %}   #Comando django para puxar a parte do base.html
+        {% load static %}   #Comando django para carregar os styles/arquivos estáticos
+        {% block content %}  #Comando para mostrar ao django onde irá começar o código do index.html
+
+    Em basse.html:
+    <body>
+    {% block content %}
+        # Aqui será colocado as partes de index.html e imagem.html
+    {% endblock %}
+    </body>
+
+    Existe, ainda, uma parte semelhante no index e imagem, que é o footer. Para poder aplicar o DRY será criado uma pasta 'partials' que irá conter o arquivo '_footer.html'
+    Em _footer.html:
+        {% load static %}
+    Em base.html: 
+            {% include "galeria/partials/_footer.html" %}
