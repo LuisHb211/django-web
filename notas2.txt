@@ -1,0 +1,111 @@
+Criando banco de dados:
+
+    galeria/models.py
+        Cria-se a classe Fotografia que será 'traduzida' para um banco de dados pelo ORM
+        #Boa prática: def __str__
+        No terminal:
+            python manage.py makemigrations
+            python manage.my migrate
+
+        Para adicionar dados nesse banco de dados, no terminal:
+            python manage.py shell
+            foto=Fotografia(...)
+            
+Boa prática de adicionar o app no INSTALLED_APPS:
+    'galeria.apps.GaleriaConfig',
+    dessa forma não irá só puxar o applicativo e sim toda a configuração
+
+---> Em views.py(galeira):
+    from galeria.models import Fotografia
+    fotografias = Fotografia.objects.all()
+
+    Deve-se alterar, também, o index.html:
+            {% if cards %}
+            {% for fotografia in cards %}
+            {% endfor %}
+            {% else %}
+            {% endif %}
+
+    E alterar o local da imagem:
+        src="{% static '/assets/imagens/galeria/'%}{{ fotografia.foto }} 
+    
+---> Para adicionar imagens/styles novos, eles devem ser adicionados na pasta static de SETUP
+    Para que a foto mostrada no index.html aparece no imagem.html, deve-se alterar em imagem.html.
+    Além disso, o ideal é passar as imagens por referência do banco de dados, logo em index.html:
+        <a href="{% url 'imagem' fotografia.id %}">
+
+    Como estamos passando por referência, deve-se alterar, urls.py e views.py:
+        path('imagem/<int:foto_id>', Imagem, name='imagem')
+
+        fotografia = get_object_or_404(Fotografia, pk=foto_id)
+        return render(request, 'galeria/imagem.html', {"fotografia": fotografia})
+
+    #Assim, ao acessar, em galeria, a imagem 2, por exemplo, será carregado o arquivo imagem.html e a fotografia.id 2
+
+---> Django admin
+    Iremos usar o admin para poder adicionar novos itens na tabela criada, para que não seja necessário adiciona-los sempre pelo shell
+    python manage.py createsuperuser (no terminal)
+    http://127.0.0.1:8000/admin/
+
+    Para adicionar a tabela, em galeria/admin.py:
+        admin.site.register(Fotografia)
+
+    Para manipular a visualização:
+    list_display = 
+    list_display_links = 
+    search_fields = 
+
+
+---> Criando 'categorias' para o banco de dados
+    galeria/models.py:
+        opcoes_categoira=[()]
+        categoria = models.CharField(max_length=100, choices=opcoes_categoria, default='')
+    terminal:
+        python manage.py makemigrations
+        python manage.py migrate
+
+    adicionando filtro por categoria em admin:
+        list_filter = ('categoria', )
+    
+    adicionando uma quebra de quantidade de itens na tabela:
+        list_per_page = 10
+
+---> Criando a possibilidade de publicar ou não a foto:
+        galeria/models.py:
+            publicada = models.BooleanField(default=False)
+        terminal:
+            python manage.py makemigrations
+            python manage.py migrate
+        galeria/views.py:
+            fotografias = Fotografia.objects.filter(publicada=True)
+        galeira/admin.py:
+            list_editable = ('publicada', )
+
+---> Criando data de publicação
+    galeria/models.py:
+        data_fotografia
+    terminal:
+        python manage.py makemigrations
+        python manage.py migrate
+
+---> Colocando as publicações mais recentes primeiro:
+    galeria/views.py:
+        fotografias = Fotografia.objects.order_by('data_fotografia').filter(publicada=True)
+
+---> Função de upload de foto, ao invés de referenciar o nome do arquivo:
+    setup/settings.py:
+        MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+        MEDIA_URL = '/media/'
+    setup/urls.py:
+        from django.conf import settings
+        from django.conf.urls import static
+
+        ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    
+    galeria/models.py:
+        foto = models.ImageField(upload_to='fotos/%Y/%m/%d/', blank=True)
+
+    terminal:
+        python manage.py makemigrations
+        python manage.py migrate
+        
