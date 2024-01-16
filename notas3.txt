@@ -1,0 +1,105 @@
+---> Criando novo app usuarios
+    python manage.py startapp usuarios
+    ---> Adicionando o caminho no manage.py
+    ---> Criando urls.py
+    # Criado um novo app, pois ele irá tratar de novas funcionalidades e abas no site
+    ---> Adicionando o path no setup/urls.py
+
+---> Adicionando urls
+    no usuarios/urls.py cria-se os path de 'login' e 'cadastro'
+
+---> Criando as views de usuarios/views.py
+    criando as funções que iram renderizar login.html e cadastro.html
+
+---> Criando uma nova pasta 'usuarios' em /templates
+
+---> Alterando a rota url no _menu.html 
+
+---> Criando forms pelo Django:
+    Cria-se um arquivo forms.py em usuarios
+    ---> Em usuarios/views.py passa o 'dicionario' form, que será a classe criado em forms.py
+    ---> Em login.html:
+            {% csrf_token %} # Relacionado com segurança de dados do formulários
+             <form action="{% url 'login' %}" method="POST">
+             #method="POST" indica que está passando uma informação através do POST e não aparece na url
+
+---> Fazendo uma validacao/lógica da criacao de um cadastro em usuarios/views.py
+    Para verificar se o usuario já existe:
+        from django.contrib.auth.models import User
+            usuario = User.objects.filter(username=nome).exists()
+
+    Caso não exista um usuario igual, será criado um novo cadastro utilizando as informações passadas:
+            usuario = User.objects.create_user(
+                username=nome,
+                email=email,
+                password=senha
+            )
+            usuario.save()
+            return redirect ('login')
+    Esse usuario será adicionado tanto na tabela db.sqlite3 quanto no /admin da página
+
+---> Lógica para o Login em usuarios/views.py
+
+---> Criando alertas para evidenciar quando nao deu certo o cadastro ou login
+    usa-se a biblioteca: 
+        from django.contrib import messages
+        
+    Para essas mensagens aparecerem deve-se alterar no index/login/cadastro.html:
+            {% for message in messages %}
+            <div class="alert alert-primary">
+                <p id="messages"> {{message}} </p>
+            </div>
+            {% endfor %}
+
+    Lembrar de passar a referencia do bootstrap para o base.html:
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+
+---> Criando a lógica do logout em views.html
+    Adicionando o path em usuarios/urls.py:
+        path('logout', logout, name='logout')
+
+    Redirecionando os templates para a página de logout:
+        <a href="{% url 'logout' %}"><img src="{% static '/assets/ícones/1x/Surpreenda-me - inativo.png' %}"> Logout</a>
+
+---> Refatorando sem o bootstrap
+    # Os styles do bootstrap estão dando conflitos com os css feito
+
+    No site pode-se ver que a parte do index está dando conflito, assim basta retirar a ref para o bootstrap
+    Além disso, a mensagem de logout que aparece ficará sem styles, para isso basta inspecionar elemento e verificar as propriedades na div de login
+
+    ---> setup/static/style/style.css 
+        .alert
+        .alert-primary
+
+---> Criando uma permissão para apenas pessoas logadas visualizarem o index
+    --->galeria/views.py
+        if not request.user.is_authenticated:
+
+---> Criando validação do cadastro do usuario
+    ---> forms.py:
+         def clean_nome_cadastro(self):    # Para o django reconhecer, DEVE comecar com clean_ e o campo a ser validado
+
+    ---> cadastro.html:
+        para adicionar a mensagem de erro:
+            {% for error in field.errors %}
+                <div class="alert alert-danger">
+                    {{error}}
+                </div>
+            {% endfor %}
+
+---> Refazendo a validacao das senhas de cadastro no forms.py inves de views.py
+        def clear_senha_2(self):
+
+---> Criando uma partial para alertas, para diminuir a quantidade de código (dry)
+    ---> galeria/partials/_alertas.html
+
+    ---> Utilizando um framework de messages:
+        settings.py:
+            from django.contrib.messages import constants as messages
+            MESSAGE_TAGS = {
+                messages.ERROR: 'danger',
+                messages.SUCCESS: 'success',
+            }
+
+---> Movendo /partials para fora de galeria
+    # Lembrar de alterar o caminho nos arquivos .html que há a ref de galeria/partials/...

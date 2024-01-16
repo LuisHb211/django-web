@@ -108,4 +108,51 @@ Boa prática de adicionar o app no INSTALLED_APPS:
     terminal:
         python manage.py makemigrations
         python manage.py migrate
-        
+
+---> Colocando uma foto padrão para caso não tiver a imagem:
+    index.html:
+        {% if fotografia.foto == '' or fotografia.foto == null %}
+            <img class="card__imagem" src="{% static '/assets/imagens/galeria/not-found.png' %}" alt="foto">
+        {% else %}
+            <img class ="card__imagem" src ="{{ fotografia.foto.url }}" alt="foto">
+        {% endif %}
+    #Lembrando que para a imagem padrão aparecer, por ser hardcode, ela deve estar na pasta imagens dentro de setup.
+
+---> Fazendo o mesmo passo anterior para imagem.html:
+    imagem.html:
+        {% if fotografia.foto == '' or fotografia.foto == null %}
+            <img class="imagem__imagem" src="{% static '/assets/imagens/galeria/not-found.png' %}">
+        {% else %}
+            <img class="imagem__imagem" src="{{ fotografia.foto.url }}">
+        {% endif %}  
+
+---> Alterando o return do models:
+    def __str__(self) -> str:
+        return self.nome
+
+---> Ativando a barra de busca do site:
+    galeria/urls.py:
+        path('buscar', Buscar, name='buscar')
+    galeria/views.py:
+        def Buscar(request, ):
+            return render(request, 'galeria/buscar.html')
+    _menu.html:
+        <form action="{% url 'buscar' %}">
+        </form>`
+
+---> Criando a view de buscar:
+
+    # Como a página buscar será praticamente a mesma que o index, buscar.html pode ser praticamente uma cópia.
+
+    def Buscar(request):
+    # Variável fotografias que carrega os itens do banco de dados.
+    fotografias = Fotografia.objects.order_by('data_fotografia').filter(publicada=True)
+
+    # Primeiro devemos verificar se estamos usando o buscar.
+    if "buscar" in request.GET:
+        # Condicional para colcoar o nome que precisa ser buscado, o qual está dentro de request.GET, que é a representação da nossa URL.
+        # O buscar faz referência ao que colocamos no arquivo "_menu.html", dentro do <input>
+        palavra_chave = request.GET["buscar"]
+        if palavra_chave:
+            fotografias = fotografias.filter(nome__icontains=palavra_chave)
+    return render(request, 'galeria/buscar.html', {'cards': fotografias})        
