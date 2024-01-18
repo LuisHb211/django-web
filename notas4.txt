@@ -1,0 +1,47 @@
+---> Criando pasta apps
+    Em setup altera o caminho em setings.py e em urls.py
+    Em galeria altera em apps.py; admin.py; views.py; urls.py
+    Faz o mesmo para a pasta usuarios
+
+---> Ao refatorar as estilizações e fazer o DRY em usuarios, os styles foram perdidos,
+    para concertar isso foi adicionado nos styles de stup algumas propriedades que iram substituir o bootstrap.
+
+    Caso a página web não corresponda a esses styles, deve-se entrar nas configurações do navegador e limpar
+    cookies, imagens e dados de formulário.
+
+---> Criando nova view/url 'Nova imagem':
+    em _menu.html adiciona-se um novo <a></a>
+    ---> Cria-se a view em galeria/views.py:
+        def nova_imagem(request):
+    ---> Cria-se o path da url:
+        path('deletar-imagem', deletar_imagem, name='deletar_imagem')
+
+---> Criando um forms de galeria a partir de um existente:
+    cria-se o forms.py em galeria e a classe: 
+        class FotografiaForms(forms.ModelForm):
+        # Como essa classe/forms sera criada a partir da classe Fotografia, usa-se ela como class meta e model:
+            class Meta:
+                model = Fotografia
+                # Na classe Fotografia ha o campo publicada, que nesse caso nn sera usado, por isso o exclude
+                exclude = ['publicada',]
+
+    ---> Reenderizando essa view em galeria/views.py
+
+---> Ao tentar cadastrar uma imagem nova ocorrera erro, para corrijir:
+    ---> nova_imagem.html:
+        <form action="{% url 'nova_imagem' %}" method="POST" enctype="multipart/form-data">
+    ---> views.py:
+        form = FotografiaForms(request.POST, request.FILES)
+
+    # Aqui fica entendido que o metodo POST serve para passar as informacoes 'escritas' da requisicao,
+    ja o metodos FILES 'armazena' as informacoes de arquivos, como fotos.
+
+---> Criando botao para editar e deletar imagem, DENTRO da imagem:
+    ---> Em imagem.html cria-se uma nova div com dois botoes com suas respectivas urls 
+
+---> Criando uma nova secret_key para a aplicação:
+    Cria-se a pasta scripts
+        Cria-se o arquivo secret_key_generator.py
+        No terminal:
+            cd .\scripts\
+            python secret_key_generator.py
